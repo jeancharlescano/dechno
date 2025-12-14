@@ -16,7 +16,7 @@ const Card = ({ article }: { article: Article }) => {
       <img
         alt={article.title}
         src={article.enclosure.link}
-        className=" max-h-32 min-h-32 mb-4 rounded"
+        className=" max-h-32 min-h-32 mb-4 rounded object-cover"
       />
       {/* A decommenter en cas de rajout de bouton */}
       {/* <div className=" flex  justify-end">
