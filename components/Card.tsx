@@ -2,7 +2,6 @@ import { Article } from "@/@types/Article";
 import Link from "next/link";
 
 const Card = ({ article }: { article: Article }) => {
-  console.log("🚀 ~ Card ~ article:", article);
   return (
     <Link
       href={article.link}
