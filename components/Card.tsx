@@ -1,5 +1,6 @@
 import { Article } from "@/@types/Article";
 import Link from "next/link";
+import Image from "next/image";
 import { Calendar, User } from "lucide-react";
 
 const Card = ({ article }: { article: Article }) => {
@@ -25,10 +26,11 @@ const Card = ({ article }: { article: Article }) => {
       {/* Image Section */}
       <div className="relative w-full h-48 overflow-hidden">
         {hasImage ? (
-          <img
+          <Image
             alt={article.title}
             src={imageUrl}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-110"
           />
         ) : (
           <div className="w-full h-full bg-linear-to-br from-sage-600 via-sage-500 to-sage-700 flex items-center justify-center">
@@ -56,7 +58,7 @@ const Card = ({ article }: { article: Article }) => {
           {/* Author */}
           <div className="flex items-center gap-2">
             <User className="w-4 h-4" />
-            <span className="truncate max-w-[150px]">{article.author}</span>
+            <span className="truncate max-w-37.5">{article.author}</span>
           </div>
 
           {/* Date */}
@@ -69,7 +71,7 @@ const Card = ({ article }: { article: Article }) => {
         {/* Read More Button */}
         <div className="mt-4">
           <span className="inline-flex items-center gap-2 px-4 py-2 bg-sage-600 text-white text-sm font-semibold rounded-lg group-hover:bg-sage-700 transition-all">
-            Lire l'article
+            Lire l&apos;article
             <svg
               className="w-4 h-4 transition-transform group-hover:translate-x-1"
               fill="none"
