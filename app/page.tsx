@@ -12,6 +12,7 @@ export default function Page() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadedFeedInfo, setLoadedFeedInfo] = useState<string>("");
   const { addFeed, feeds } = useRssFeeds();
 
   const getRssData = useCallback(
@@ -25,6 +26,7 @@ export default function Page() {
         if (data.items && data.items.length > 0) {
           setArticles(data.items);
           setAllArticles(data.items);
+          setLoadedFeedInfo(data.feed?.title || url);
           if (data.feed?.title) {
             addFeed(url, data.feed.title);
           }
@@ -42,6 +44,7 @@ export default function Page() {
     if (feeds.length === 0) {
       setArticles([]);
       setAllArticles([]);
+      setLoadedFeedInfo("");
       setIsLoading(false);
       return;
     }
@@ -60,14 +63,22 @@ export default function Page() {
       if (data.items && data.items.length > 0) {
         setArticles(data.items);
         setAllArticles(data.items);
+        // Set feed info based on number of feeds loaded
+        if (feeds.length === 1) {
+          setLoadedFeedInfo(feeds[0].title || feeds[0].url);
+        } else {
+          setLoadedFeedInfo(`${feeds.length} flux RSS`);
+        }
       } else {
         setArticles([]);
         setAllArticles([]);
+        setLoadedFeedInfo("");
       }
     } catch (error) {
       console.log("🚀 ~ loadSavedFeeds ~ error:", error);
       setArticles([]);
       setAllArticles([]);
+      setLoadedFeedInfo("");
     } finally {
       setIsLoading(false);
     }
@@ -148,7 +159,8 @@ export default function Page() {
             <div className="mb-6 text-sage-900 text-center bg-white/60 backdrop-blur-sm rounded-xl p-4 shadow-md border border-sage-200">
               <p className="text-sm font-medium">
                 {articles.length} article{articles.length > 1 ? "s" : ""} chargé
-                {articles.length > 1 ? "s" : ""} depuis {feeds.length} flux RSS
+                {articles.length > 1 ? "s" : ""}
+                {loadedFeedInfo && ` depuis ${loadedFeedInfo}`}
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
