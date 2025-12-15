@@ -26,10 +26,9 @@ const Card = ({ article }: { article: Article }) => {
       {/* Image Section */}
       <div className="relative w-full h-48 overflow-hidden">
         {hasImage ? (
-          <Image
+          <img
             alt={article.title}
             src={imageUrl}
-            fill
             className="object-cover transition-transform duration-300 group-hover:scale-110"
           />
         ) : (
