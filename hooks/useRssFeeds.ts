@@ -13,6 +13,9 @@ const STORAGE_KEY = "dechno_rss_feeds";
 let listeners: Array<() => void> = [];
 let cachedFeeds: RssFeed[] | null = null;
 
+// Cache pour le snapshot serveur (doit être constant)
+const emptyFeeds: RssFeed[] = [];
+
 function getSnapshot(): RssFeed[] {
   if (cachedFeeds === null) {
     cachedFeeds = loadFeeds();
@@ -21,7 +24,7 @@ function getSnapshot(): RssFeed[] {
 }
 
 function getServerSnapshot(): RssFeed[] {
-  return [];
+  return emptyFeeds;
 }
 
 function subscribe(listener: () => void) {
