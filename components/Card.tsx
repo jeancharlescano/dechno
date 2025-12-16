@@ -1,9 +1,17 @@
+"use client";
+
 import { Article } from "@/@types/Article";
 import Link from "next/link";
 import Image from "next/image";
-import { Calendar, User } from "lucide-react";
+import { Calendar, User, Send } from "lucide-react";
+import { useState } from "react";
+import { useSettings } from "@/hooks/useSettings";
 
 const Card = ({ article }: { article: Article }) => {
+  const { settings } = useSettings();
+  const [isSending, setIsSending] = useState(false);
+  const [sendStatus, setSendStatus] = useState<"idle" | "success" | "error">("idle");
+
   const imageUrl = article.attachements?.articleImg || article.enclosure?.link;
   const hasImage = imageUrl && imageUrl.trim() !== "";
 
@@ -17,14 +25,88 @@ const Card = ({ article }: { article: Article }) => {
     });
   };
 
+  const handleSendToN8n = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!settings.n8nWebhookUrl) {
+      alert("⚠️ Veuillez configurer l'URL du webhook n8n dans les Paramètres");
+      return;
+    }
+
+    setIsSending(true);
+    setSendStatus("idle");
+
+    try {
+      const response = await fetch("/api/n8n/send-article", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          article,
+          webhookUrl: settings.n8nWebhookUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send article");
+      }
+
+      setSendStatus("success");
+      setTimeout(() => setSendStatus("idle"), 3000);
+    } catch (error) {
+      console.error("Error sending article to n8n:", error);
+      setSendStatus("error");
+      setTimeout(() => setSendStatus("idle"), 3000);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   return (
-    <Link
-      href={article.link}
-      target="_blank"
-      className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-sage-200 hover:border-sage-500"
-    >
-      {/* Image Section */}
-      <div className="relative w-full h-48 overflow-hidden">
+    <div className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-sage-200 hover:border-sage-500 relative">
+      {/* Send to n8n button - positioned absolutely */}
+      <button
+        onClick={handleSendToN8n}
+        disabled={isSending}
+        className={`absolute top-3 right-3 z-10 p-2 rounded-lg transition-all ${
+          sendStatus === "success"
+            ? "bg-green-500 text-white"
+            : sendStatus === "error"
+            ? "bg-red-500 text-white"
+            : "bg-white/90 text-sage-700 hover:bg-sage-600 hover:text-white"
+        } shadow-lg backdrop-blur-sm disabled:opacity-50`}
+        title={
+          sendStatus === "success"
+            ? "Envoyé avec succès!"
+            : sendStatus === "error"
+            ? "Erreur d'envoi"
+            : "Envoyer vers Notion et Discord"
+        }
+      >
+        {isSending ? (
+          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : sendStatus === "success" ? (
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+        ) : sendStatus === "error" ? (
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        ) : (
+          <Send className="w-5 h-5" />
+        )}
+      </button>
+
+      <Link
+        href={article.link}
+        target="_blank"
+        className="flex flex-col flex-1"
+      >
+        {/* Image Section */}
+        <div className="relative w-full h-48 overflow-hidden">
         {hasImage ? (
           <img
             alt={article.title}
@@ -87,7 +169,8 @@ const Card = ({ article }: { article: Article }) => {
           </span>
         </div>
       </div>
-    </Link>
+      </Link>
+    </div>
   );
 };
 

@@ -1,0 +1,139 @@
+{
+  "name": "Dechno → Notion + Discord",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "825ef053-69fa-468d-ba1c-7e642ed95722",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -180,
+        240
+      ],
+      "id": "06e4539f-a436-48c2-b9e1-a5b46b9ec6c1",
+      "name": "Webhook",
+      "webhookId": "825ef053-69fa-468d-ba1c-7e642ed95722"
+    },
+    {
+      "parameters": {
+        "resource": "databasePage",
+        "operation": "create",
+        "databaseId": {
+          "__rl": true,
+          "value": "YOUR_NOTION_DATABASE_ID",
+          "mode": "list",
+          "cachedResultName": "Articles RSS"
+        },
+        "title": "={{ $json.body.title }}",
+        "propertiesUi": {
+          "propertyValues": [
+            {
+              "key": "URL",
+              "urlValue": "={{ $json.body.link }}"
+            },
+            {
+              "key": "Auteur",
+              "textValue": "={{ $json.body.author }}"
+            },
+            {
+              "key": "Date de publication",
+              "dateValue": "={{ $json.body.pubDate }}"
+            },
+            {
+              "key": "Source",
+              "selectValue": "RSS Feed"
+            },
+            {
+              "key": "Status",
+              "selectValue": "À lire"
+            }
+          ]
+        },
+        "blockUi": {
+          "blockValues": [
+            {
+              "type": "paragraph",
+              "richText": true,
+              "textContent": "={{ $json.body.content }}"
+            },
+            {
+              "type": "image",
+              "url": "={{ $json.body.image }}"
+            },
+            {
+              "type": "bookmark",
+              "url": "={{ $json.body.link }}"
+            }
+          ]
+        },
+        "options": {
+          "iconType": "emoji",
+          "icon": "📰"
+        }
+      },
+      "type": "n8n-nodes-base.notion",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        140
+      ],
+      "id": "notion-node-id",
+      "name": "Ajouter à Notion",
+      "credentials": {
+        "notionApi": {
+          "id": "YOUR_NOTION_CREDENTIAL_ID",
+          "name": "Notion account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "YOUR_DISCORD_WEBHOOK_URL",
+        "authentication": "none",
+        "requestMethod": "POST",
+        "sendBody": true,
+        "bodyContentType": "json",
+        "jsonBody": "={\n  \"embeds\": [{\n    \"title\": \"📰 {{ $json.body.title }}\",\n    \"url\": \"{{ $json.body.link }}\",\n    \"description\": \"{{ $json.body.content }}\",\n    \"color\": 5814783,\n    \"fields\": [\n      {\n        \"name\": \"👤 Auteur\",\n        \"value\": \"{{ $json.body.author }}\",\n        \"inline\": true\n      },\n      {\n        \"name\": \"📅 Date\",\n        \"value\": \"{{ $toDateTime($json.body.pubDate).toFormat('dd/MM/yyyy HH:mm') }}\",\n        \"inline\": true\n      }\n    ],\n    \"image\": {\n      \"url\": \"{{ $json.body.image }}\"\n    },\n    \"footer\": {\n      \"text\": \"Dechno RSS Aggregator\"\n    },\n    \"timestamp\": \"{{ $json.body.pubDate }}\"\n  }]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        80,
+        340
+      ],
+      "id": "discord-node-id",
+      "name": "Envoyer sur Discord"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Ajouter à Notion",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Envoyer sur Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2025-12-16T12:00:00.000Z",
+  "versionId": "1"
+}

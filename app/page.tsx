@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { Article } from "@/@types/Article";
 import { checkIsUrl } from "@/utils/string";
 import { useRssFeeds } from "@/hooks/useRssFeeds";
+import { useSettings } from "@/hooks/useSettings";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import Header from "@/components/Header";
 import Card from "@/components/Card";
@@ -13,7 +15,14 @@ export default function Page() {
   const [allArticles, setAllArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadedFeedInfo, setLoadedFeedInfo] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState(1);
   const { addFeed, feeds } = useRssFeeds();
+  const { settings } = useSettings();
+
+  // Debug: log feeds when they change
+  useEffect(() => {
+    console.log("[Page] feeds changed:", feeds.length, "feeds", feeds);
+  }, [feeds]);
 
   const getRssData = useCallback(
     async (url: string) => {
@@ -41,7 +50,10 @@ export default function Page() {
   );
 
   const loadSavedFeeds = useCallback(async () => {
+    console.log("[loadSavedFeeds] Called with feeds:", feeds.length, "feeds");
+
     if (feeds.length === 0) {
+      console.log("[loadSavedFeeds] No feeds found, showing empty state");
       setArticles([]);
       setAllArticles([]);
       setLoadedFeedInfo("");
@@ -86,6 +98,8 @@ export default function Page() {
 
   const checkQueryUrl = useCallback(
     (query: string) => {
+      setCurrentPage(1); // Reset to first page on search
+
       if (!query.trim()) {
         setArticles(allArticles);
         return;
@@ -102,7 +116,22 @@ export default function Page() {
     },
     [getRssData, allArticles]
   );
-  
+
+  // Pagination logic
+  const articlesPerPage = settings.articlesPerPage;
+  const totalPages = Math.ceil(articles.length / articlesPerPage);
+
+  const paginatedArticles = useMemo(() => {
+    const startIndex = (currentPage - 1) * articlesPerPage;
+    const endIndex = startIndex + articlesPerPage;
+    return articles.slice(startIndex, endIndex);
+  }, [articles, currentPage, articlesPerPage]);
+
+  // Reset to page 1 when articles change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [articles.length]);
+
   useEffect(() => {
     loadSavedFeeds();
   }, [loadSavedFeeds]);
@@ -161,13 +190,72 @@ export default function Page() {
                 {articles.length} article{articles.length > 1 ? "s" : ""} chargé
                 {articles.length > 1 ? "s" : ""}
                 {loadedFeedInfo && ` depuis ${loadedFeedInfo}`}
+                {totalPages > 1 && ` • Page ${currentPage} sur ${totalPages}`}
               </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {articles.map((article) => (
+
+            {/* Articles Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+              {paginatedArticles.map((article) => (
                 <Card key={article.guid} article={article} />
               ))}
             </div>
+
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-8">
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-sage-300 text-sage-700 rounded-lg hover:bg-sage-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+                  title="Page précédente"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                  <span className="hidden sm:inline">Précédent</span>
+                </button>
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => {
+                      // Show first page, last page, current page, and pages around current
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        Math.abs(page - currentPage) <= 1
+                      );
+                    })
+                    .map((page, idx, arr) => (
+                      <div key={page} className="flex items-center gap-2">
+                        {/* Add ellipsis if there's a gap */}
+                        {idx > 0 && page - arr[idx - 1] > 1 && (
+                          <span className="text-sage-500">...</span>
+                        )}
+                        <button
+                          onClick={() => setCurrentPage(page)}
+                          className={`w-10 h-10 rounded-lg font-semibold transition-all shadow-md ${
+                            currentPage === page
+                              ? "bg-sage-600 text-white"
+                              : "bg-white border-2 border-sage-300 text-sage-700 hover:bg-sage-50"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      </div>
+                    ))}
+                </div>
+
+                <button
+                  onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2 px-4 py-2 bg-white border-2 border-sage-300 text-sage-700 rounded-lg hover:bg-sage-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
+                  title="Page suivante"
+                >
+                  <span className="hidden sm:inline">Suivant</span>
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </>
         )}
       </main>

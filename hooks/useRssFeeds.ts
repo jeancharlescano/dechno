@@ -1,4 +1,4 @@
-import React, { useSyncExternalStore } from "react";
+import { useSyncExternalStore, useEffect } from "react";
 
 export interface RssFeed {
   id: string;
@@ -14,6 +14,9 @@ let listeners: Array<() => void> = [];
 let cachedFeeds: RssFeed[] | null = null;
 
 const emptyFeeds: RssFeed[] = [];
+
+// Variable to track if we're currently loading default feeds
+let isLoadingDefaultFeeds = false;
 
 function getSnapshot(): RssFeed[] {
   if (cachedFeeds === null) {
@@ -40,50 +43,83 @@ function emitChange() {
   }
 }
 
-async function loadDefaultFeeds(): Promise<RssFeed[]> {
+async function loadDefaultFeedsFromJson(): Promise<RssFeed[]> {
   try {
+    console.log("[loadDefaultFeedsFromJson] Fetching default feeds from JSON...");
     const response = await fetch('/default-feeds.json');
     if (!response.ok) {
-      console.error("Failed to load default feeds");
+      console.error("[loadDefaultFeedsFromJson] Failed to fetch default feeds");
       return [];
     }
-    const defaultFeeds: RssFeed[] = await response.json();
-    return defaultFeeds;
+    const feeds: RssFeed[] = await response.json();
+    console.log("[loadDefaultFeedsFromJson] Loaded", feeds.length, "default feeds from JSON");
+    return feeds;
   } catch (error) {
-    console.error("Error loading default feeds:", error);
-    return [];
-  }
-}
-
-function loadFeeds(): RssFeed[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const storedFeeds = localStorage.getItem(STORAGE_KEY);
-    return storedFeeds ? JSON.parse(storedFeeds) : [];
-  } catch (error) {
-    console.error("Error loading feeds from localStorage:", error);
+    console.error("[loadDefaultFeedsFromJson] Error loading default feeds:", error);
     return [];
   }
 }
 
 async function initializeDefaultFeeds(): Promise<void> {
   if (typeof window === "undefined") return;
+  if (isLoadingDefaultFeeds) {
+    console.log("[initializeDefaultFeeds] Already loading, skipping...");
+    return;
+  }
 
   try {
-    const isInitialized = localStorage.getItem(DEFAULT_FEEDS_INITIALIZED_KEY);
     const storedFeeds = localStorage.getItem(STORAGE_KEY);
+    const isInitialized = localStorage.getItem(DEFAULT_FEEDS_INITIALIZED_KEY);
 
-    if (!isInitialized && !storedFeeds) {
-      const defaultFeeds = await loadDefaultFeeds();
+    // Only initialize if we have no feeds and haven't initialized yet
+    if ((!storedFeeds || JSON.parse(storedFeeds).length === 0) && !isInitialized) {
+      isLoadingDefaultFeeds = true;
+      console.log("[initializeDefaultFeeds] Loading default feeds...");
+
+      const defaultFeeds = await loadDefaultFeedsFromJson();
+
       if (defaultFeeds.length > 0) {
+        console.log("[initializeDefaultFeeds] Saving", defaultFeeds.length, "default feeds to localStorage");
         localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultFeeds));
         localStorage.setItem(DEFAULT_FEEDS_INITIALIZED_KEY, "true");
         cachedFeeds = defaultFeeds;
         emitChange();
       }
+
+      isLoadingDefaultFeeds = false;
     }
   } catch (error) {
-    console.error("Error initializing default feeds:", error);
+    console.error("[initializeDefaultFeeds] Error:", error);
+    isLoadingDefaultFeeds = false;
+  }
+}
+
+function loadFeeds(): RssFeed[] {
+  if (typeof window === "undefined") {
+    console.log("[loadFeeds] Running on server, returning empty array");
+    return [];
+  }
+
+  try {
+    const storedFeeds = localStorage.getItem(STORAGE_KEY);
+    console.log("[loadFeeds] storedFeeds from localStorage:", storedFeeds);
+
+    if (storedFeeds) {
+      const parsed = JSON.parse(storedFeeds);
+      console.log("[loadFeeds] Parsed feeds:", parsed.length, "feeds");
+
+      // If we have stored feeds and they're not empty, return them
+      if (parsed.length > 0) {
+        console.log("[loadFeeds] Returning stored feeds:", parsed.length, "feeds");
+        return parsed;
+      }
+    }
+
+    console.log("[loadFeeds] No feeds found, returning empty array");
+    return [];
+  } catch (error) {
+    console.error("Error loading feeds from localStorage:", error);
+    return [];
   }
 }
 
@@ -100,7 +136,8 @@ function saveFeeds(feeds: RssFeed[]): void {
 export function useRssFeeds() {
   const feeds = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
-  React.useEffect(() => {
+  // Initialize default feeds from JSON on first load
+  useEffect(() => {
     initializeDefaultFeeds();
   }, []);
 

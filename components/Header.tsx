@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import React, { useState } from "react";
-import { Bookmark } from "lucide-react";
+import { Bookmark, Settings } from "lucide-react";
+import Link from "next/link";
 import Drawer from "./Drawer";
 
 const Header = React.memo(
@@ -52,15 +53,24 @@ const Header = React.memo(
                 </div>
               </div>
 
-              {/* Drawer Button */}
-              <button
-                onClick={() => setIsDrawerOpen(true)}
-                className="flex items-center gap-2 px-4 py-3 bg-sage-600 text-white rounded-xl hover:bg-sage-700 transition-all shadow-md hover:shadow-lg"
-                title="Mes flux RSS"
-              >
-                <Bookmark className="w-5 h-5" />
-                <span className="hidden sm:inline font-medium">Mes flux</span>
-              </button>
+              {/* Action Buttons */}
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/settings"
+                  className="p-3 bg-sage-100 text-sage-700 rounded-xl hover:bg-sage-200 transition-all shadow-md hover:shadow-lg"
+                  title="Paramètres"
+                >
+                  <Settings className="w-5 h-5" />
+                </Link>
+                <button
+                  onClick={() => setIsDrawerOpen(true)}
+                  className="flex items-center gap-2 px-4 py-3 bg-sage-600 text-white rounded-xl hover:bg-sage-700 transition-all shadow-md hover:shadow-lg"
+                  title="Mes flux RSS"
+                >
+                  <Bookmark className="w-5 h-5" />
+                  <span className="hidden sm:inline font-medium">Mes flux</span>
+                </button>
+              </div>
             </div>
           </div>
         </header>
