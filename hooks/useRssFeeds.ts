@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from "react";
+import React, { useSyncExternalStore } from "react";
 
 export interface RssFeed {
   id: string;
@@ -8,12 +8,11 @@ export interface RssFeed {
 }
 
 const STORAGE_KEY = "dechno_rss_feeds";
+const DEFAULT_FEEDS_INITIALIZED_KEY = "dechno_default_feeds_initialized";
 
-// Store pour localStorage
 let listeners: Array<() => void> = [];
 let cachedFeeds: RssFeed[] | null = null;
 
-// Cache pour le snapshot serveur (doit être constant)
 const emptyFeeds: RssFeed[] = [];
 
 function getSnapshot(): RssFeed[] {
@@ -41,6 +40,21 @@ function emitChange() {
   }
 }
 
+async function loadDefaultFeeds(): Promise<RssFeed[]> {
+  try {
+    const response = await fetch('/default-feeds.json');
+    if (!response.ok) {
+      console.error("Failed to load default feeds");
+      return [];
+    }
+    const defaultFeeds: RssFeed[] = await response.json();
+    return defaultFeeds;
+  } catch (error) {
+    console.error("Error loading default feeds:", error);
+    return [];
+  }
+}
+
 function loadFeeds(): RssFeed[] {
   if (typeof window === "undefined") return [];
   try {
@@ -49,6 +63,27 @@ function loadFeeds(): RssFeed[] {
   } catch (error) {
     console.error("Error loading feeds from localStorage:", error);
     return [];
+  }
+}
+
+async function initializeDefaultFeeds(): Promise<void> {
+  if (typeof window === "undefined") return;
+
+  try {
+    const isInitialized = localStorage.getItem(DEFAULT_FEEDS_INITIALIZED_KEY);
+    const storedFeeds = localStorage.getItem(STORAGE_KEY);
+
+    if (!isInitialized && !storedFeeds) {
+      const defaultFeeds = await loadDefaultFeeds();
+      if (defaultFeeds.length > 0) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultFeeds));
+        localStorage.setItem(DEFAULT_FEEDS_INITIALIZED_KEY, "true");
+        cachedFeeds = defaultFeeds;
+        emitChange();
+      }
+    }
+  } catch (error) {
+    console.error("Error initializing default feeds:", error);
   }
 }
 
@@ -64,6 +99,10 @@ function saveFeeds(feeds: RssFeed[]): void {
 
 export function useRssFeeds() {
   const feeds = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+
+  React.useEffect(() => {
+    initializeDefaultFeeds();
+  }, []);
 
   const addFeed = (url: string, title?: string) => {
     const newFeed: RssFeed = {

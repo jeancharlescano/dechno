@@ -110,7 +110,7 @@ export default function Page() {
   return (
     <div className="min-h-screen">
       <Header onSearch={checkQueryUrl} />
-      <main className="max-w-7xl mx-auto px-4 pb-12">
+      <main className="container mx-auto px-4 pb-12">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-20">
             <div className="text-sage-900 text-center bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border-2 border-sage-200">
