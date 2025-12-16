@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { useRssFeeds } from "@/hooks/useRssFeeds";
-import { ArrowLeft, Save, RefreshCw, Trash2, Webhook, Palette, List, Download, Upload } from "lucide-react";
+import { ArrowLeft, Save, RefreshCw, Trash2, Webhook, List, Download, Upload } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
@@ -115,7 +115,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sage-50 via-white to-sage-100">
+    <div className="min-h-screen bg-linear-to-br from-sage-50 via-white to-sage-100">
       {/* Header */}
       <header className="bg-white/95 backdrop-blur-sm shadow-lg mb-8 sticky top-0 z-40 border-b-2 border-sage-300">
         <div className="container mx-auto px-4 py-4">
@@ -164,7 +164,7 @@ export default function SettingsPage() {
                 className="w-full px-4 py-3 border-2 border-sage-300 rounded-xl focus:border-sage-600 focus:outline-none transition-colors"
               />
               <p className="mt-2 text-sm text-sage-600">
-                L'URL du webhook n8n pour envoyer les articles vers Notion et Discord
+                L&apos;URL du webhook n8n pour envoyer les articles vers Notion et Discord
               </p>
             </div>
 
@@ -216,7 +216,7 @@ export default function SettingsPage() {
 
             <div className="pt-4 border-t border-sage-200">
               <label className="block text-sm font-semibold text-sage-700 mb-3">
-                Boutons d'action sur les cartes
+                Boutons d&apos;action sur les cartes
               </label>
               <div className="space-y-3">
                 {/* Notion Toggle */}
@@ -231,7 +231,7 @@ export default function SettingsPage() {
                       onChange={(e) => setShowNotionButton(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sage-600"></div>
+                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top--0.5 after:left--0.5 after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sage-600"></div>
                   </label>
                 </div>
 
@@ -247,7 +247,7 @@ export default function SettingsPage() {
                       onChange={(e) => setShowDiscordButton(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top--0.5 after:left--0.5 after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
                   </label>
                 </div>
 
@@ -263,12 +263,12 @@ export default function SettingsPage() {
                       onChange={(e) => setShowMattermostButton(e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top--0.5 after:left--0.5 after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                   </label>
                 </div>
               </div>
               <p className="mt-3 text-xs text-sage-600">
-                Contrôlez quels boutons d'envoi apparaissent sur les cartes d'articles
+                Contrôlez quels boutons d&apos;envoi apparaissent sur les cartes d&apos;articles
               </p>
             </div>
           </div>

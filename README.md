@@ -51,7 +51,7 @@ npm start
 
 ## 📁 Structure du projet
 
-```
+```txt
 dechno/
 ├── app/
 │   ├── api/
@@ -86,11 +86,13 @@ GET /api/rss/parse?url=<RSS_URL>
 Parse un flux RSS depuis une URL et retourne les articles formatés.
 
 **Exemple:**
+
 ```bash
 curl "http://localhost:3000/api/rss/parse?url=https://dev.to/feed"
 ```
 
 **Réponse:**
+
 ```json
 {
   "feed": {
@@ -128,6 +130,7 @@ Content-Type: application/json
 Parse plusieurs flux RSS en parallèle et retourne tous les articles agrégés.
 
 **Exemple:**
+
 ```bash
 curl -X POST http://localhost:3000/api/rss/parse-multiple \
   -H "Content-Type: application/json" \
@@ -222,6 +225,7 @@ Le moyen le plus simple de déployer votre application Next.js :
 ### Autres plateformes
 
 Le projet peut être déployé sur n'importe quelle plateforme supportant Next.js :
+
 - **Netlify** - Build command: `npm run build`
 - **Railway** - Détection automatique
 - **Docker** - Créez un Dockerfile avec Node.js 18+
