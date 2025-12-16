@@ -12,6 +12,7 @@
     "@headlessui/react": "^2.2.9",
     "@iconify/react": "^6.0.2",
     "aos": "^2.3.4",
+    "better-sqlite3": "^12.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cors": "^2.8.5",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.18",
     "@types/aos": "^3.0.7",
+    "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

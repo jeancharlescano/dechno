@@ -177,11 +177,85 @@ export function useRssFeeds() {
     saveFeeds([]);
   };
 
+  const exportFeeds = () => {
+    const currentFeeds = getSnapshot();
+    const dataStr = JSON.stringify(currentFeeds, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `dechno-feeds-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const importFeeds = (file: File): Promise<{ success: boolean; message: string; count?: number }> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const importedFeeds: RssFeed[] = JSON.parse(content);
+
+          if (!Array.isArray(importedFeeds)) {
+            resolve({ success: false, message: 'Le fichier JSON doit contenir un tableau de flux' });
+            return;
+          }
+
+          // Validate feed structure
+          const validFeeds = importedFeeds.filter(feed =>
+            feed.url && typeof feed.url === 'string'
+          );
+
+          if (validFeeds.length === 0) {
+            resolve({ success: false, message: 'Aucun flux valide trouvé dans le fichier' });
+            return;
+          }
+
+          // Merge with existing feeds (avoid duplicates)
+          const currentFeeds = getSnapshot();
+          const existingUrls = new Set(currentFeeds.map(f => f.url));
+          const newFeeds = validFeeds.filter(feed => !existingUrls.has(feed.url));
+
+          if (newFeeds.length === 0) {
+            resolve({ success: false, message: 'Tous les flux importés existent déjà' });
+            return;
+          }
+
+          // Add new feeds
+          const updatedFeeds = [...currentFeeds, ...newFeeds.map(feed => ({
+            ...feed,
+            id: feed.id || Date.now().toString() + Math.random(),
+            title: feed.title || feed.url,
+            addedAt: feed.addedAt || new Date().toISOString()
+          }))];
+
+          saveFeeds(updatedFeeds);
+          resolve({
+            success: true,
+            message: `${newFeeds.length} flux importé(s) avec succès`,
+            count: newFeeds.length
+          });
+        } catch (error) {
+          resolve({ success: false, message: 'Erreur lors de la lecture du fichier JSON' });
+        }
+      };
+      reader.onerror = () => {
+        resolve({ success: false, message: 'Erreur lors de la lecture du fichier' });
+      };
+      reader.readAsText(file);
+    });
+  };
+
   return {
     feeds,
     addFeed,
     removeFeed,
     updateFeedTitle,
     clearAllFeeds,
+    exportFeeds,
+    importFeeds,
   };
 }
