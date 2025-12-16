@@ -13,6 +13,9 @@ export default function SettingsPage() {
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState(settings.n8nWebhookUrl);
   const [autoSendToN8n, setAutoSendToN8n] = useState(settings.autoSendToN8n);
   const [articlesPerPage, setArticlesPerPage] = useState(settings.articlesPerPage);
+  const [showNotionButton, setShowNotionButton] = useState(settings.showNotionButton);
+  const [showDiscordButton, setShowDiscordButton] = useState(settings.showDiscordButton);
+  const [showMattermostButton, setShowMattermostButton] = useState(settings.showMattermostButton);
   const [isSaved, setIsSaved] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
 
@@ -20,6 +23,9 @@ export default function SettingsPage() {
     setN8nWebhookUrl(settings.n8nWebhookUrl);
     setAutoSendToN8n(settings.autoSendToN8n);
     setArticlesPerPage(settings.articlesPerPage);
+    setShowNotionButton(settings.showNotionButton);
+    setShowDiscordButton(settings.showDiscordButton);
+    setShowMattermostButton(settings.showMattermostButton);
   }, [settings]);
 
   const handleSave = () => {
@@ -27,6 +33,9 @@ export default function SettingsPage() {
       n8nWebhookUrl,
       autoSendToN8n,
       articlesPerPage,
+      showNotionButton,
+      showDiscordButton,
+      showMattermostButton,
     });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
@@ -176,6 +185,64 @@ export default function SettingsPage() {
                 <option value={50}>50 articles</option>
                 <option value={100}>100 articles</option>
               </select>
+            </div>
+
+            <div className="pt-4 border-t border-sage-200">
+              <label className="block text-sm font-semibold text-sage-700 mb-3">
+                Boutons d'action sur les cartes
+              </label>
+              <div className="space-y-3">
+                {/* Notion Toggle */}
+                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-sage-700">Bouton Notion</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showNotionButton}
+                      onChange={(e) => setShowNotionButton(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sage-600"></div>
+                  </label>
+                </div>
+
+                {/* Discord Toggle */}
+                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-sage-700">Bouton Discord</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showDiscordButton}
+                      onChange={(e) => setShowDiscordButton(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600"></div>
+                  </label>
+                </div>
+
+                {/* Mattermost Toggle */}
+                <div className="flex items-center justify-between p-3 bg-sage-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-sage-700">Bouton Mattermost</span>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showMattermostButton}
+                      onChange={(e) => setShowMattermostButton(e.target.checked)}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-sage-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-sage-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-sage-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                  </label>
+                </div>
+              </div>
+              <p className="mt-3 text-xs text-sage-600">
+                Contrôlez quels boutons d'envoi apparaissent sur les cartes d'articles
+              </p>
             </div>
           </div>
         </section>

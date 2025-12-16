@@ -6,9 +6,12 @@ import { checkIsUrl } from "@/utils/string";
 import { useRssFeeds } from "@/hooks/useRssFeeds";
 import { useSettings } from "@/hooks/useSettings";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import AOS from "aos";
+import "aos/dist/aos.css";
 
 import Header from "@/components/Header";
 import Card from "@/components/Card";
+import Squares from "@/components/Squares";
 
 export default function Page() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -132,12 +135,38 @@ export default function Page() {
     setCurrentPage(1);
   }, [articles.length]);
 
+  // Refresh AOS when page changes
+  useEffect(() => {
+    AOS.refresh();
+  }, [currentPage]);
+
   useEffect(() => {
     loadSavedFeeds();
   }, [loadSavedFeeds]);
 
+  // Initialize AOS
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      easing: "ease-in-out",
+      once: true,
+      mirror: false,
+    });
+  }, []);
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {/* Squares Background */}
+      <div className="fixed inset-0 -z-10 h-full w-full bg-white">
+        <Squares
+          direction="diagonal"
+          speed={0.5}
+          borderColor="#e5e5e5"
+          squareSize={64}
+          hoverFillColor="rgba(198, 246, 213, 0.3)"
+        />
+      </div>
+
       <Header onSearch={checkQueryUrl} />
       <main className="container mx-auto px-4 pb-12">
         {isLoading ? (
@@ -196,8 +225,14 @@ export default function Page() {
 
             {/* Articles Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-              {paginatedArticles.map((article) => (
-                <Card key={article.guid} article={article} />
+              {paginatedArticles.map((article, index) => (
+                <div
+                  key={article.guid}
+                  data-aos="fade-up"
+                  data-aos-delay={index * 50}
+                >
+                  <Card article={article} />
+                </div>
               ))}
             </div>
 

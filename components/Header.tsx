@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import React, { useState } from "react";
 import { Bookmark, Settings } from "lucide-react";
 import Link from "next/link";

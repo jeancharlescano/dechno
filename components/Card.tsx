@@ -3,14 +3,21 @@
 import { Article } from "@/@types/Article";
 import Link from "next/link";
 import Image from "next/image";
-import { Calendar, User, Send } from "lucide-react";
+import { Calendar, User } from "lucide-react";
+import { Icon } from "@iconify/react";
 import { useState } from "react";
 import { useSettings } from "@/hooks/useSettings";
 
+type SendTarget = "notion" | "discord" | "mattermost" | null;
+
 const Card = ({ article }: { article: Article }) => {
   const { settings } = useSettings();
-  const [isSending, setIsSending] = useState(false);
-  const [sendStatus, setSendStatus] = useState<"idle" | "success" | "error">("idle");
+  const [isSendingNotion, setIsSendingNotion] = useState(false);
+  const [isSendingDiscord, setIsSendingDiscord] = useState(false);
+  const [isSendingMattermost, setIsSendingMattermost] = useState(false);
+  const [notionStatus, setNotionStatus] = useState<"idle" | "success" | "error">("idle");
+  const [discordStatus, setDiscordStatus] = useState<"idle" | "success" | "error">("idle");
+  const [mattermostStatus, setMattermostStatus] = useState<"idle" | "success" | "error">("idle");
 
   const imageUrl = article.attachements?.articleImg || article.enclosure?.link;
   const hasImage = imageUrl && imageUrl.trim() !== "";
@@ -25,7 +32,7 @@ const Card = ({ article }: { article: Article }) => {
     });
   };
 
-  const handleSendToN8n = async (e: React.MouseEvent) => {
+  const handleSendToNotion = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -34,8 +41,8 @@ const Card = ({ article }: { article: Article }) => {
       return;
     }
 
-    setIsSending(true);
-    setSendStatus("idle");
+    setIsSendingNotion(true);
+    setNotionStatus("idle");
 
     try {
       const response = await fetch("/api/n8n/send-article", {
@@ -46,59 +53,246 @@ const Card = ({ article }: { article: Article }) => {
         body: JSON.stringify({
           article,
           webhookUrl: settings.n8nWebhookUrl,
+          target: "notion",
         }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to send article");
+        throw new Error("Failed to send article to Notion");
       }
 
-      setSendStatus("success");
-      setTimeout(() => setSendStatus("idle"), 3000);
+      setNotionStatus("success");
+      setTimeout(() => setNotionStatus("idle"), 3000);
     } catch (error) {
-      console.error("Error sending article to n8n:", error);
-      setSendStatus("error");
-      setTimeout(() => setSendStatus("idle"), 3000);
+      console.error("Error sending article to Notion:", error);
+      setNotionStatus("error");
+      setTimeout(() => setNotionStatus("idle"), 3000);
     } finally {
-      setIsSending(false);
+      setIsSendingNotion(false);
+    }
+  };
+
+  const handleSendToDiscord = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!settings.n8nWebhookUrl) {
+      alert("⚠️ Veuillez configurer l'URL du webhook n8n dans les Paramètres");
+      return;
+    }
+
+    setIsSendingDiscord(true);
+    setDiscordStatus("idle");
+
+    try {
+      const response = await fetch("/api/n8n/send-article", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          article,
+          webhookUrl: settings.n8nWebhookUrl,
+          target: "discord",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send article to Discord");
+      }
+
+      setDiscordStatus("success");
+      setTimeout(() => setDiscordStatus("idle"), 3000);
+    } catch (error) {
+      console.error("Error sending article to Discord:", error);
+      setDiscordStatus("error");
+      setTimeout(() => setDiscordStatus("idle"), 3000);
+    } finally {
+      setIsSendingDiscord(false);
+    }
+  };
+
+  const handleSendToMattermost = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!settings.n8nWebhookUrl) {
+      alert("⚠️ Veuillez configurer l'URL du webhook n8n dans les Paramètres");
+      return;
+    }
+
+    setIsSendingMattermost(true);
+    setMattermostStatus("idle");
+
+    try {
+      const response = await fetch("/api/n8n/send-article", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          article,
+          webhookUrl: settings.n8nWebhookUrl,
+          target: "mattermost",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to send article to Mattermost");
+      }
+
+      setMattermostStatus("success");
+      setTimeout(() => setMattermostStatus("idle"), 3000);
+    } catch (error) {
+      console.error("Error sending article to Mattermost:", error);
+      setMattermostStatus("error");
+      setTimeout(() => setMattermostStatus("idle"), 3000);
+    } finally {
+      setIsSendingMattermost(false);
     }
   };
 
   return (
-    <div className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 border-2 border-sage-200 hover:border-sage-500 relative">
-      {/* Send to n8n button - positioned absolutely */}
-      <button
-        onClick={handleSendToN8n}
-        disabled={isSending}
-        className={`absolute top-3 right-3 z-10 p-2 rounded-lg transition-all ${
-          sendStatus === "success"
-            ? "bg-green-500 text-white"
-            : sendStatus === "error"
-            ? "bg-red-500 text-white"
-            : "bg-white/90 text-sage-700 hover:bg-sage-600 hover:text-white"
-        } shadow-lg backdrop-blur-sm disabled:opacity-50`}
-        title={
-          sendStatus === "success"
-            ? "Envoyé avec succès!"
-            : sendStatus === "error"
-            ? "Erreur d'envoi"
-            : "Envoyer vers Notion et Discord"
-        }
-      >
-        {isSending ? (
-          <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-        ) : sendStatus === "success" ? (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        ) : sendStatus === "error" ? (
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        ) : (
-          <Send className="w-5 h-5" />
-        )}
-      </button>
+    <div
+      className="group flex flex-col bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl border-2 border-sage-200 hover:border-sage-500 relative"
+      style={{
+        transformStyle: 'preserve-3d',
+        perspective: '1000px',
+        transition: 'transform 0.1s ease-out, box-shadow 0.3s ease, border-color 0.3s ease'
+      }}
+      onMouseMove={(e) => {
+        const card = e.currentTarget;
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+        const rotateX = (y - centerY) / 30;
+        const rotateY = (centerX - x) / 30;
+
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateZ(5px)`;
+      }}
+      onMouseLeave={(e) => {
+        const card = e.currentTarget;
+        card.style.transition = 'transform 0.5s ease-out, box-shadow 0.3s ease, border-color 0.3s ease';
+        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateZ(0px)';
+        setTimeout(() => {
+          card.style.transition = 'transform 0.1s ease-out, box-shadow 0.3s ease, border-color 0.3s ease';
+        }, 500);
+      }}
+    >
+      {/* Action buttons - positioned absolutely */}
+      {(settings.showNotionButton || settings.showDiscordButton || settings.showMattermostButton) && (
+        <div className="absolute top-3 right-3 z-10 flex gap-2">
+          {/* Send to Notion button */}
+          {settings.showNotionButton && (
+            <button
+              onClick={handleSendToNotion}
+              disabled={isSendingNotion}
+              className={`p-2 rounded-lg transition-all ${
+                notionStatus === "success"
+                  ? "bg-green-500 text-white"
+                  : notionStatus === "error"
+                  ? "bg-red-500 text-white"
+                  : "bg-white/90 text-gray-800 hover:bg-gray-800 hover:text-white"
+              } shadow-lg backdrop-blur-sm disabled:opacity-50`}
+              title={
+                notionStatus === "success"
+                  ? "Envoyé à Notion!"
+                  : notionStatus === "error"
+                  ? "Erreur d'envoi à Notion"
+                  : "Envoyer vers Notion"
+              }
+            >
+              {isSendingNotion ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : notionStatus === "success" ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : notionStatus === "error" ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <Icon icon="ri:notion-line" className="w-5 h-5" />
+              )}
+            </button>
+          )}
+
+          {/* Send to Discord button */}
+          {settings.showDiscordButton && (
+            <button
+              onClick={handleSendToDiscord}
+              disabled={isSendingDiscord}
+              className={`p-2 rounded-lg transition-all ${
+                discordStatus === "success"
+                  ? "bg-green-500 text-white"
+                  : discordStatus === "error"
+                  ? "bg-red-500 text-white"
+                  : "bg-white/90 text-indigo-600 hover:bg-indigo-600 hover:text-white"
+              } shadow-lg backdrop-blur-sm disabled:opacity-50`}
+              title={
+                discordStatus === "success"
+                  ? "Envoyé à Discord!"
+                  : discordStatus === "error"
+                  ? "Erreur d'envoi à Discord"
+                  : "Envoyer vers Discord"
+              }
+            >
+              {isSendingDiscord ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : discordStatus === "success" ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : discordStatus === "error" ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <Icon icon="ic:outline-discord" className="w-5 h-5" />
+              )}
+            </button>
+          )}
+
+          {/* Send to Mattermost button */}
+          {settings.showMattermostButton && (
+            <button
+              onClick={handleSendToMattermost}
+              disabled={isSendingMattermost}
+              className={`p-2 rounded-lg transition-all ${
+                mattermostStatus === "success"
+                  ? "bg-green-500 text-white"
+                  : mattermostStatus === "error"
+                  ? "bg-red-500 text-white"
+                  : "bg-white/90 text-blue-600 hover:bg-blue-600 hover:text-white"
+              } shadow-lg backdrop-blur-sm disabled:opacity-50`}
+              title={
+                mattermostStatus === "success"
+                  ? "Envoyé à Mattermost!"
+                  : mattermostStatus === "error"
+                  ? "Erreur d'envoi à Mattermost"
+                  : "Envoyer vers Mattermost"
+              }
+            >
+              {isSendingMattermost ? (
+                <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              ) : mattermostStatus === "success" ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : mattermostStatus === "error" ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <Icon icon="simple-icons:mattermost" className="w-5 h-5" />
+              )}
+            </button>
+          )}
+        </div>
+      )}
 
       <Link
         href={article.link}

@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { article, webhookUrl: clientWebhookUrl } = body;
+    const { article, webhookUrl: clientWebhookUrl, target } = body;
 
     // Use client-provided webhook URL or fallback to env variable
     const webhookUrl = clientWebhookUrl || process.env.N8N_WEBHOOK_URL;
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("[n8n] Sending article to webhook:", article.title);
+    console.log("[n8n] Sending article to webhook:", article.title, "Target:", target || "both");
 
     // Send article data to n8n webhook
     const response = await fetch(webhookUrl, {
@@ -31,6 +31,7 @@ export async function POST(request: NextRequest) {
         content: article.content?.summary || "",
         image: article.attachements?.articleImg || article.enclosure?.link || "",
         guid: article.guid,
+        target: target || "both", // Add target field (notion, discord, or both)
       }),
     });
 

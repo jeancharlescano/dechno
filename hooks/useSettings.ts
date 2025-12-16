@@ -5,6 +5,9 @@ export interface AppSettings {
   autoSendToN8n: boolean;
   theme: "light" | "dark" | "auto";
   articlesPerPage: number;
+  showNotionButton: boolean;
+  showDiscordButton: boolean;
+  showMattermostButton: boolean;
 }
 
 const STORAGE_KEY = "dechno_settings";
@@ -14,6 +17,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoSendToN8n: false,
   theme: "light",
   articlesPerPage: 20,
+  showNotionButton: true,
+  showDiscordButton: true,
+  showMattermostButton: true,
 };
 
 let listeners: Array<() => void> = [];
