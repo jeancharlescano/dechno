@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { useRssFeeds } from "@/hooks/useRssFeeds";
-import { ArrowLeft, Save, RefreshCw, Trash2, Webhook, Palette, List } from "lucide-react";
+import { ArrowLeft, Save, RefreshCw, Trash2, Webhook, Palette, List, Download, Upload } from "lucide-react";
 import Link from "next/link";
 
 export default function SettingsPage() {
   const { settings, updateSettings, resetSettings } = useSettings();
-  const { feeds, clearAllFeeds } = useRssFeeds();
+  const { feeds, clearAllFeeds, exportFeeds, importFeeds } = useRssFeeds();
 
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState(settings.n8nWebhookUrl);
   const [autoSendToN8n, setAutoSendToN8n] = useState(settings.autoSendToN8n);
@@ -18,6 +18,8 @@ export default function SettingsPage() {
   const [showMattermostButton, setShowMattermostButton] = useState(settings.showMattermostButton);
   const [isSaved, setIsSaved] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setN8nWebhookUrl(settings.n8nWebhookUrl);
@@ -85,6 +87,31 @@ export default function SettingsPage() {
     } catch (error) {
       alert("❌ Erreur lors du test : " + error);
     }
+  };
+
+  const handleExportFeeds = () => {
+    exportFeeds();
+  };
+
+  const handleImportFeeds = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const result = await importFeeds(file);
+    setImportMessage({
+      type: result.success ? 'success' : 'error',
+      text: result.message
+    });
+
+    setTimeout(() => setImportMessage(null), 5000);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -255,6 +282,51 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-4">
+            {/* Import/Export Section */}
+            <div className="p-4 bg-sage-50 rounded-lg border border-sage-200">
+              <p className="text-sm font-semibold text-sage-700 mb-3">
+                Import/Export des flux RSS
+              </p>
+              <p className="text-xs text-sage-600 mb-3">
+                Sauvegardez vos flux RSS ou importez-les depuis un fichier JSON
+              </p>
+
+              {importMessage && (
+                <div className={`mb-3 p-3 rounded-lg ${
+                  importMessage.type === 'success'
+                    ? 'bg-green-100 border border-green-500 text-green-800'
+                    : 'bg-red-100 border border-red-500 text-red-800'
+                }`}>
+                  <p className="text-sm font-medium">{importMessage.text}</p>
+                </div>
+              )}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={handleExportFeeds}
+                  disabled={feeds.length === 0}
+                  className="flex items-center gap-2 px-4 py-2 bg-sage-600 text-white rounded-lg hover:bg-sage-700 disabled:bg-sage-300 disabled:cursor-not-allowed transition-colors font-semibold"
+                >
+                  <Download className="w-4 h-4" />
+                  Exporter
+                </button>
+                <button
+                  onClick={triggerFileInput}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+                >
+                  <Upload className="w-4 h-4" />
+                  Importer
+                </button>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="application/json,.json"
+                  onChange={handleImportFeeds}
+                  className="hidden"
+                />
+              </div>
+            </div>
+
             <div className="p-4 bg-sage-50 rounded-lg border border-sage-200">
               <p className="text-sm text-sage-700 mb-3">
                 <strong>{feeds.length}</strong> flux RSS enregistrés

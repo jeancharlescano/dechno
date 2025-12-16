@@ -1,13 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { Bookmark, Settings } from "lucide-react";
+import { Bookmark, Settings, Library } from "lucide-react";
 import Link from "next/link";
 import Drawer from "./Drawer";
+import FeedLibrary from "./FeedLibrary";
 
 const Header = React.memo(
   ({ onSearch }: { onSearch: (query: string) => void }) => {
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+    const [isLibraryOpen, setIsLibraryOpen] = useState(false);
 
     const handleSelectFeed = (url: string) => {
       onSearch(url);
@@ -54,6 +56,13 @@ const Header = React.memo(
 
               {/* Action Buttons */}
               <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setIsLibraryOpen(true)}
+                  className="p-3 bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-all shadow-md hover:shadow-lg"
+                  title="Bibliothèque de flux"
+                >
+                  <Library className="w-5 h-5" />
+                </button>
                 <Link
                   href="/settings"
                   className="p-3 bg-sage-100 text-sage-700 rounded-xl hover:bg-sage-200 transition-all shadow-md hover:shadow-lg"
@@ -78,6 +87,11 @@ const Header = React.memo(
           isOpen={isDrawerOpen}
           onClose={() => setIsDrawerOpen(false)}
           onSelectFeed={handleSelectFeed}
+        />
+
+        <FeedLibrary
+          isOpen={isLibraryOpen}
+          onClose={() => setIsLibraryOpen(false)}
         />
       </>
     );
