@@ -1,8 +1,6 @@
 services:
   dechno:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: registry.williamloree.fr/dechno:latest
     container_name: dechno-app
     ports:
       - "3000:3000"
