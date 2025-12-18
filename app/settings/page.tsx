@@ -5,6 +5,7 @@ import { useSettings } from "@/hooks/useSettings";
 import { useRssFeeds } from "@/hooks/useRssFeeds";
 import { ArrowLeft, Save, RefreshCw, Trash2, Webhook, List, Download, Upload } from "lucide-react";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function SettingsPage() {
   const { settings, updateSettings, resetSettings } = useSettings();
@@ -16,7 +17,6 @@ export default function SettingsPage() {
   const [showNotionButton, setShowNotionButton] = useState(settings.showNotionButton);
   const [showDiscordButton, setShowDiscordButton] = useState(settings.showDiscordButton);
   const [showMattermostButton, setShowMattermostButton] = useState(settings.showMattermostButton);
-  const [isSaved, setIsSaved] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -39,14 +39,12 @@ export default function SettingsPage() {
       showDiscordButton,
       showMattermostButton,
     });
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+    toast.success("Paramètres sauvegardés avec succès !")
   };
 
   const handleReset = () => {
     resetSettings();
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+    toast.success("Paramètres sauvegardés avec succès !")
   };
 
   const handleClearFeeds = () => {
@@ -136,13 +134,6 @@ export default function SettingsPage() {
       </header>
 
       <main className="container mx-auto px-4 pb-12 max-w-4xl">
-        {/* Success Message */}
-        {isSaved && (
-          <div className="mb-6 p-4 bg-green-100 border-2 border-green-500 text-green-800 rounded-xl flex items-center gap-2">
-            <Save className="w-5 h-5" />
-            <span className="font-semibold">Paramètres sauvegardés avec succès !</span>
-          </div>
-        )}
 
         {/* n8n Webhook Section */}
         <section className="bg-white rounded-2xl shadow-lg p-6 mb-6 border-2 border-sage-200">
